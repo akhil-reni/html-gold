@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letter Scrambler Animation</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    
+    .container {
+      text-align: center;
+    }
+    
+    .intro-text {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    
+    .scrambler-container {
+      position: relative;
+      display: inline-block;
+      min-height: 3.5rem;
+    }
+    
+    .measurement-container {
+      position: absolute;
+      visibility: hidden;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+    }
+    
+    .scrambler-text {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #4a6cf7;
+      display: inline-block;
+      white-space: nowrap;
+      transition: width 0.5s cubic-bezier(0.5, 0, 0.5, 1.5);
+    }
+    
+    .letter {
+      display: inline-block;
+      transform-origin: center;
+      animation: letterAppear 0.3s ease-out forwards;
+    }
+    
+    @keyframes letterAppear {
+      0% {
+        opacity: 0;
+        transform: translateY(-15px) scale(0.8);
+        filter: blur(4px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="intro-text">We make websites that are:</p>
+    <div class="scrambler-container">
+      <div class="measurement-container" id="measurement"></div>
+      <div class="scrambler-text" id="scrambler"></div>
+    </div>
+  </div>
+
+  <script>
+    class LetterScrambler {
+      constructor(options) {
+        this.options = {
+          words: ['Creative', 'Dynamic', 'Innovative', 'Powerful'],
+          interval: 4000,
+          scramblingDuration: 1500,
+          characterSet: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?',
+          ...options
+        };
+        
+        this.currentIndex = 0;
+        this.isScrambling = false;
+        this.displayText = this.options.words[0];
+        
+        this.scramblerElement = document.getElementById('scrambler');
+        this.measurementElement = document.getElementById('measurement');
+        
+        this.init();
+      }
+      
+      init() {
+        // Set up measurement container with all words
+        this.options.words.forEach(word => {
+          const wordSpan = document.createElement('span');
+          wordSpan.textContent = word;
+          wordSpan.style.fontWeight = 'bold';
+          wordSpan.className = 'measure-word';
+          this.measurementElement.appendChild(wordSpan);
+        });
+        
+        // Display initial word
+        this.updateDisplay(this.options.words[0]);
+        
+        // Start word cycling
+        setInterval(() => this.cycleWord(), this.options.interval);
+      }
+      
+      cycleWord() {
+        this.currentIndex = (this.currentIndex + 1) % this.options.words.length;
+        this.startScrambling();
+      }
+      
+      startScrambling() {
+        if (this.isScrambling) return;
+        
+        this.isScrambling = true;
+        
+        let iterations = 0;
+        const maxIterations = 10;
+        const targetWord = this.options.words[this.currentIndex];
+        const maxLength = targetWord.length;
+        
+        // Update container width to match target word
+        const measureWords = document.querySelectorAll('.measure-word');
+        if (measureWords.length > this.currentIndex) {
+          const newWidth = measureWords[this.currentIndex].getBoundingClientRect().width;
+          this.scramblerElement.style.width = `${newWidth}px`;
+        }
+        
+        // Create scrambling animation
+        const interval = setInterval(() => {
+          iterations++;
+          
+          // Generate scrambled text
+          let newText = "";
+          for (let i = 0; i < maxLength; i++) {
+            if (iterations >= maxIterations - 2 && i < targetWord.length) {
+              // Start revealing the target word near the end
+              newText += targetWord[i];
+            } else if (i < targetWord.length) {
+              // Random character
+              newText += this.options.characterSet[Math.floor(Math.random() * this.options.characterSet.length)];
+            }
+          }
+          
+          this.updateDisplay(newText);
+          
+          if (iterations >= maxIterations) {
+            clearInterval(interval);
+            this.updateDisplay(targetWord);
+            this.isScrambling = false;
+          }
+        }, this.options.scramblingDuration / maxIterations);
+      }
+      
+      updateDisplay(text) {
+        // Clear previous content
+        this.scramblerElement.innerHTML = '';
+        
+        // Create letter spans with staggered animation
+        [...text].forEach((letter, index) => {
+          const letterSpan = document.createElement('span');
+          letterSpan.textContent = letter;
+          letterSpan.className = 'letter';
+          letterSpan.style.animationDelay = `${index * 30}ms`;
+          this.scramblerElement.appendChild(letterSpan);
+        });
+      }
+    }
+
+    // Initialize the scrambler when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      new LetterScrambler({
+        words: ['Creative', 'Dynamic', 'Innovative', 'Powerful', 'Responsive'],
+        interval: 4000,
+        scramblingDuration: 1500
+      });
+    });
+  </script>
+</body>
+</html>
