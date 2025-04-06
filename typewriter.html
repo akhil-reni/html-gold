@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typewriter Text Animation</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f5f5f5;
+      margin: 0;
+    }
+    
+    .container {
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .intro-text {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    
+    .typewriter-container {
+      position: relative;
+      display: inline-block;
+      min-height: 3.5rem;
+    }
+    
+    .typewriter-text {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #4a6cf7;
+      display: inline-block;
+      white-space: nowrap;
+      border-right: 0.15em solid #4a6cf7;
+      overflow: hidden;
+      margin: 0;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Cursor blinking animation */
+    @keyframes blink-caret {
+      from, to { border-color: transparent }
+      50% { border-color: #4a6cf7 }
+    }
+    
+    .typewriter-cursor {
+      animation: blink-caret 0.75s step-end infinite;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="intro-text">We make websites that are:</p>
+    <div class="typewriter-container">
+      <span class="typewriter-text typewriter-cursor" id="typewriter"></span>
+    </div>
+  </div>
+
+  <script>
+    class TypewriterEffect {
+      constructor(options) {
+        this.options = {
+          element: document.getElementById('typewriter'),
+          words: ['Creative', 'Dynamic', 'Innovative', 'Responsive', 'Powerful'],
+          typeSpeed: 100,         // Speed of typing (ms per character)
+          deleteSpeed: 50,        // Speed of deleting (ms per character) 
+          delayAfterWord: 1500,   // How long to pause after word is typed
+          delayBeforeDelete: 800, // How long to pause before deleting
+          loop: true,            // Whether to loop through the words
+          ...options
+        };
+        
+        this.element = this.options.element;
+        this.words = this.options.words;
+        this.currentWordIndex = 0;
+        this.currentText = '';
+        this.isDeleting = false;
+        this.isWaiting = false;
+        this.loopCount = 0;
+        
+        // Start the animation
+        this.type();
+      }
+      
+      type() {
+        // Current word based on array position
+        const currentWordIndex = this.currentWordIndex % this.words.length;
+        const fullWord = this.words[currentWordIndex];
+        
+        // Determine if adding or removing characters
+        if (this.isDeleting) {
+          // Remove character
+          this.currentText = fullWord.substring(0, this.currentText.length - 1);
+        } else {
+          // Add character
+          this.currentText = fullWord.substring(0, this.currentText.length + 1);
+        }
+        
+        // Update the element text
+        this.element.textContent = this.currentText;
+        
+        // Calculate typing speed
+        let typeSpeed = this.isDeleting ? this.options.deleteSpeed : this.options.typeSpeed;
+        
+        // If complete word has been typed
+        if (!this.isDeleting && this.currentText === fullWord) {
+          // Pause before starting to delete
+          typeSpeed = this.options.delayBeforeDelete;
+          this.isDeleting = true;
+        } 
+        // If deletion is complete
+        else if (this.isDeleting && this.currentText === '') {
+          this.isDeleting = false;
+          // Move to next word
+          this.currentWordIndex++;
+          // Pause before typing next word
+          typeSpeed = this.options.delayAfterWord;
+          
+          // Check if we've completed a full loop
+          if (this.currentWordIndex % this.words.length === 0) {
+            this.loopCount++;
+            // If loop is false and we've gone through all words once, stop
+            if (!this.options.loop && this.loopCount >= 1) {
+              return;
+            }
+          }
+        }
+        
+        // Add slight randomness to typing speed for realism
+        const randomVariation = Math.random() * 50 - 25;
+        
+        // Schedule the next character update
+        setTimeout(() => this.type(), typeSpeed + randomVariation);
+      }
+    }
+
+    // Initialize the typewriter effect when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      new TypewriterEffect({
+        words: ['Creative', 'Dynamic', 'Innovative', 'Responsive', 'Powerful'],
+        typeSpeed: 100,
+        deleteSpeed: 50,
+        delayAfterWord: 1500,
+        delayBeforeDelete: 800
+      });
+    });
+  </script>
+</body>
+</html>
